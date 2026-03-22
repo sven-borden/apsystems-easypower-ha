@@ -34,7 +34,7 @@ Other APsystems EZ-series inverters that use the same app should work as well. P
 ### Via HACS (recommended)
 
 1. Open HACS → Integrations → ⋮ → Custom repositories
-2. Add URL: `https://github.com/YOUR_USERNAME/apsystems-easypower-ha` — Category: **Integration**
+2. Add URL: `https://github.com/Meyblaubaer/apsystems-easypower-ha` — Category: **Integration**
 3. Search for *AP Systems EasyPower* and install
 4. Restart Home Assistant
 
