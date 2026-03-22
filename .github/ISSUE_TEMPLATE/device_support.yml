@@ -1,0 +1,27 @@
+name: Device Support Request
+description: Your APsystems device is not working or not listed as supported
+labels: ["device-support"]
+body:
+  - type: input
+    attributes:
+      label: Inverter model
+      placeholder: "e.g. DS3, QS1, YC600"
+    validations:
+      required: true
+
+  - type: input
+    attributes:
+      label: AP EasyPower app version
+      placeholder: "e.g. 1.5.11"
+
+  - type: textarea
+    attributes:
+      label: What happens?
+      placeholder: "Does setup fail, sensors show unavailable, wrong values, ...?"
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Debug log
+      render: text
