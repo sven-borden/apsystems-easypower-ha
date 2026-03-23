@@ -74,6 +74,10 @@ class APSystemsAPIError(Exception):
     """General API error."""
 
 
+class APSystemsInverterOfflineError(Exception):
+    """Inverter is offline or unreachable (API code 1001)."""
+
+
 class APSystemsAPI:
     """Client for the AP Systems cloud API."""
 
@@ -163,8 +167,11 @@ class APSystemsAPI:
                 resp2.raise_for_status()
                 body = await resp2.json(content_type=None)
 
-        if body.get("code") != 0:
-            raise APSystemsAPIError(f"API error on {path}: code={body.get('code')} {body.get('message', '')}")
+        code = body.get("code")
+        if code == 1001:
+            raise APSystemsInverterOfflineError(f"Inverter offline on {path}")
+        if code != 0:
+            raise APSystemsAPIError(f"API error on {path}: code={code} {body.get('message', '')}")
 
         return body.get("data") or {}
 

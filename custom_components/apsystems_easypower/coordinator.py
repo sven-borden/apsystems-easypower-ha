@@ -7,7 +7,7 @@ from datetime import timedelta
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from .api import APSystemsAPI, APSystemsAPIError, APSystemsAuthError
+from .api import APSystemsAPI, APSystemsAPIError, APSystemsAuthError, APSystemsInverterOfflineError
 from .const import DOMAIN, UPDATE_INTERVAL
 
 _LOGGER = logging.getLogger(__name__)
@@ -62,19 +62,35 @@ class APSystemsCoordinator(DataUpdateCoordinator):
         try:
             for inv in self.inverters:
                 dev_id = inv["inverter_dev_id"]
-                # statistic has: todayEnergy, monthEnergy, lifetimeEnergy, lastPower, lastRunningStatus
-                statistic = await self.api.get_inverter_statistic(dev_id)
-                # realtime has: power (current W), energy (today kWh), runningStatus
-                realtime = await self.api.get_inverter_realtime(dev_id)
+                prev = (self.data or {}).get(dev_id, {})
+
+                # Statistic (todayEnergy, monthEnergy, lifetimeEnergy, lastPower)
+                # Fall back to last known values if inverter is offline.
+                try:
+                    statistic = await self.api.get_inverter_statistic(dev_id)
+                except APSystemsInverterOfflineError:
+                    statistic = prev.get("statistic", {})
+                    _LOGGER.debug("Inverter %s offline — keeping cached statistic", dev_id)
+
+                # Realtime (current power per channel) — empty when inverter is offline.
+                try:
+                    realtime = await self.api.get_inverter_realtime(dev_id)
+                    offline = False
+                except APSystemsInverterOfflineError:
+                    realtime = {}
+                    offline = True
+                    _LOGGER.debug("Inverter %s is offline — realtime unavailable", dev_id)
 
                 result[dev_id] = {
                     "info": inv,
                     "statistic": statistic,
                     "realtime": realtime,
+                    "offline": offline,
                 }
                 _LOGGER.debug(
-                    "Inverter %s: power=%sW, todayEnergy=%s kWh, lifetimeEnergy=%s kWh",
+                    "Inverter %s: offline=%s, power=%sW, todayEnergy=%s kWh, lifetimeEnergy=%s kWh",
                     dev_id,
+                    offline,
                     realtime.get("power"),
                     statistic.get("todayEnergy"),
                     statistic.get("lifetimeEnergy"),

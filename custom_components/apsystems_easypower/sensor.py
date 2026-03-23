@@ -147,15 +147,28 @@ class APSystemsSensor(CoordinatorEntity[APSystemsCoordinator], SensorEntity):
         }
 
     @property
+    def _inv_data(self) -> dict:
+        if not self.coordinator.data:
+            return {}
+        return self.coordinator.data.get(self._dev_id, {})
+
+    @property
+    def available(self) -> bool:
+        """Power sensors are unavailable when inverter is offline; energy sensors stay available."""
+        if not super().available:
+            return False
+        if not self._inv_data:
+            return False
+        # Realtime-based sensors (power) are unavailable when offline
+        if self.entity_description.source == "realtime" and self._inv_data.get("offline", False):
+            return False
+        return True
+
+    @property
     def native_value(self) -> float | None:
         """Return current sensor value from coordinator data."""
-        if not self.coordinator.data or self._dev_id not in self.coordinator.data:
-            return None
-
-        inv_data = self.coordinator.data[self._dev_id]
-        source_data = inv_data.get(self.entity_description.source, {})
+        source_data = self._inv_data.get(self.entity_description.source, {})
         raw = source_data.get(self.entity_description.path)
-
         if raw is None:
             return None
         try:
