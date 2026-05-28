@@ -12,7 +12,7 @@
       },
       "reauth_confirm": {
         "title": "APsystems EasyPower erneut authentifizieren",
-        "description": "Bitte geben Sie Ihr neues Passwort ein.",
+        "description": "Ihr APsystems-Passwort wird nicht mehr akzeptiert. Bitte geben Sie das neue Passwort für `{username}` ein.",
         "data": {
           "password": "Passwort"
         }
