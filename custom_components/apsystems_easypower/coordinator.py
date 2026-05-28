@@ -29,34 +29,39 @@ class APSystemsCoordinator(DataUpdateCoordinator):
         self.system_id: str | None = None
 
     async def async_discover_inverters(self) -> None:
-        """Discover all inverters for this account. Call once after authentication."""
-        try:
-            user_info = await self.api.get_user_info()
-            system_list = user_info.get("systemInfo", [])
-            if not system_list:
-                raise APSystemsAPIError("No systems found for this account")
+        """Discover all inverters for this account. Call once after authentication.
 
-            # Use the first system
-            system = system_list[0] if isinstance(system_list, list) else system_list
-            self.system_id = system["system_id"]
-            _LOGGER.debug("Discovered system_id=%s", self.system_id)
+        Raises APSystemsAuthError or APSystemsAPIError on failure; the caller
+        translates these to ConfigEntryAuthFailed / ConfigEntryNotReady (setup)
+        or UpdateFailed (runtime).
+        """
+        user_info = await self.api.get_user_info()
+        system_list = user_info.get("systemInfo", [])
+        if not system_list:
+            raise APSystemsAPIError("No systems found for this account")
 
-            self.inverters = await self.api.get_inverter_list(self.system_id)
-            _LOGGER.info(
-                "Discovered %d inverter(s) for system %s: %s",
-                len(self.inverters),
-                self.system_id,
-                [inv.get("inverter_dev_id") for inv in self.inverters],
-            )
-        except APSystemsAuthError as err:
-            raise UpdateFailed(f"Authentication failed during discovery: {err}") from err
-        except APSystemsAPIError as err:
-            raise UpdateFailed(f"API error during discovery: {err}") from err
+        # Use the first system
+        system = system_list[0] if isinstance(system_list, list) else system_list
+        self.system_id = system["system_id"]
+        _LOGGER.debug("Discovered system_id=%s", self.system_id)
+
+        self.inverters = await self.api.get_inverter_list(self.system_id)
+        _LOGGER.info(
+            "Discovered %d inverter(s) for system %s: %s",
+            len(self.inverters),
+            self.system_id,
+            [inv.get("inverter_dev_id") for inv in self.inverters],
+        )
 
     async def _async_update_data(self) -> dict:
         """Fetch current data for all discovered inverters."""
         if not self.inverters:
-            await self.async_discover_inverters()
+            try:
+                await self.async_discover_inverters()
+            except APSystemsAuthError as err:
+                raise UpdateFailed(f"Authentication failed during discovery: {err}") from err
+            except APSystemsAPIError as err:
+                raise UpdateFailed(f"API error during discovery: {err}") from err
 
         result = {}
         try:
