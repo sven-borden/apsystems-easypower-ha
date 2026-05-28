@@ -6,8 +6,7 @@
         "description": "Geben Sie Ihre APsystems EasyPower Zugangsdaten ein.",
         "data": {
           "username": "Benutzername (Kontoname)",
-          "password": "Passwort",
-          "scan_interval": "Aktualisierungsintervall (Sekunden)"
+          "password": "Passwort"
         }
       },
       "reauth_confirm": {
@@ -20,56 +19,11 @@
     },
     "error": {
       "cannot_connect": "Verbindung zum APsystems Server fehlgeschlagen",
-      "invalid_auth": "Ungültiger Benutzername oder Passwort",
-      "unknown": "Unerwarteter Fehler aufgetreten"
+      "invalid_auth": "Ungültiger Benutzername oder Passwort"
     },
     "abort": {
       "already_configured": "Konto ist bereits konfiguriert",
       "reauth_successful": "Erneute Authentifizierung war erfolgreich"
-    }
-  },
-  "entity": {
-    "sensor": {
-      "power": {
-        "name": "Leistung"
-      },
-      "energy_today": {
-        "name": "Energie heute"
-      },
-      "energy_lifetime": {
-        "name": "Energie gesamt"
-      },
-      "temperature": {
-        "name": "Temperatur"
-      },
-      "voltage": {
-        "name": "Spannung"
-      },
-      "current": {
-        "name": "Strom"
-      },
-      "frequency": {
-        "name": "Frequenz"
-      },
-      "status": {
-        "name": "Status",
-        "state": {
-          "online": "Online",
-          "offline": "Offline",
-          "alarm": "Alarm",
-          "unknown": "Unbekannt"
-        }
-      }
-    },
-    "switch": {
-      "power": {
-        "name": "Einschalten"
-      }
-    },
-    "number": {
-      "max_power": {
-        "name": "Max. Leistungsbegrenzung"
-      }
     }
   }
 }
