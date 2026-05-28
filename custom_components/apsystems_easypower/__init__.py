@@ -25,7 +25,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     coordinator = APSystemsCoordinator(hass, api)
     # Discover inverters before first data refresh so sensor entities can be created
-    await coordinator.async_discover_inverters()
+    try:
+        await coordinator.async_discover_inverters()
+    except APSystemsAuthError as err:
+        raise ConfigEntryAuthFailed(str(err)) from err
+    except APSystemsAPIError as err:
+        raise ConfigEntryNotReady(str(err)) from err
     await coordinator.async_config_entry_first_refresh()
 
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = {
