@@ -4,8 +4,9 @@ from __future__ import annotations
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, Platform
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 
-from .api import APSystemsAPI
+from .api import APSystemsAPI, APSystemsAPIError, APSystemsAuthError
 from .const import DATA_COORDINATOR, DOMAIN
 from .coordinator import APSystemsCoordinator
 
@@ -15,7 +16,12 @@ PLATFORMS = [Platform.SENSOR]
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up AP Systems EasyPower from a config entry."""
     api = APSystemsAPI(entry.data[CONF_USERNAME], entry.data[CONF_PASSWORD])
-    await api.authenticate()
+    try:
+        await api.authenticate()
+    except APSystemsAuthError as err:
+        raise ConfigEntryAuthFailed(str(err)) from err
+    except APSystemsAPIError as err:
+        raise ConfigEntryNotReady(str(err)) from err
 
     coordinator = APSystemsCoordinator(hass, api)
     # Discover inverters before first data refresh so sensor entities can be created
